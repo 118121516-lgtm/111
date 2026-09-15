@@ -1,22 +1,21 @@
 import streamlit as st
-import re
 import json
 import requests
 import os
 from datetime import datetime
 import random
+import re
 
 # -------------------------- 配置区 --------------------------
 API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-FEEDBACK_FILE = "feedback.json"
 CACHE_FILE = "poem_cache.json"
+FEEDBACK_FILE = "feedback.json"
 
-# 优先从 secrets 读取，否则回退到硬编码（并给出警告）
+# 优先从 secrets 读取，否则回退到硬编码
 try:
     API_KEY = st.secrets["API_KEY"]
 except Exception:
     API_KEY = "f4ebce0d60fb409a9746576163eb1f1b.Avz56h7epg3MlMdl"
-    st.warning("⚠️ 未在 .streamlit/secrets.toml 中找到 API_KEY，使用硬编码默认值。建议创建该文件以保护密钥。")
 
 # 初中必背60篇
 QUICK_POEMS = [
@@ -51,7 +50,7 @@ def save_cache(data):
 def load_feedback():
     if os.path.exists(FEEDBACK_FILE):
         try:
-           with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
+            with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if not content:
                     return []
@@ -64,37 +63,6 @@ def load_feedback():
 def save_feedback(feedback_list):
     with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
         json.dump(feedback_list, f, ensure_ascii=False, indent=2)
-
-
-def extract_translation_text(content):
-    """从解析结果中提取【译文】部分"""
-    if "【译文】" in content:
-        parts = content.split("【译文】")
-        if len(parts) > 1:
-            end_markers = ["【考点】", "【背诵提示】", "【重点字词】"]
-            text = parts[1]
-            for marker in end_markers:
-                if marker in text:
-                    text = text.split(marker)[0]
-            return text.strip()
-    return None
-
-
-def search_poem_by_keyword(keyword):
-    """飞花令：在已缓存的所有原文中搜索包含关键字的所有句子"""
-    import re
-    results = []
-    for title, content in cache_data.items():
-        original = extract_original_text(content)
-        if original:
-            # 按中文标点分割句子
-            sentences = re.split(r'[，。！？；、]', original)
-            for sent in sentences:
-                # 去除空白，检查是否包含关键字，且长度大于1（排除单个标点）
-                clean_sent = sent.strip()
-                if keyword in clean_sent and len(clean_sent) > 1:
-                    results.append((title, clean_sent))
-    return results
 
 
 cache_data = load_cache()
@@ -142,6 +110,32 @@ def extract_original_text(content):
     return None
 
 
+def extract_translation_text(content):
+    if "【译文】" in content:
+        parts = content.split("【译文】")
+        if len(parts) > 1:
+            end_markers = ["【考点】", "【背诵提示】", "【重点字词】"]
+            text = parts[1]
+            for marker in end_markers:
+                if marker in text:
+                    text = text.split(marker)[0]
+            return text.strip()
+    return None
+
+
+def search_poem_by_keyword(keyword):
+    results = []
+    for title, content in cache_data.items():
+        original = extract_original_text(content)
+        if original:
+            sentences = re.split(r'[，。！？；、]', original)
+            for sent in sentences:
+                clean_sent = sent.strip()
+                if keyword in clean_sent and len(clean_sent) > 1:
+                    results.append((title, clean_sent))
+    return results
+
+
 def generate_cloze(text, ratio=0.25):
     chars = list(text)
     indices = [i for i, c in enumerate(chars) if '\u4e00' <= c <= '\u9fff']
@@ -169,38 +163,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
 section.main > div {
     background-color: #f0f8f0 !important;
 }
-/* 强制全局文字变深色 */
 .stApp, .stApp *, [data-testid="stAppViewContainer"] * {
     color: #111122 !important;
 }
-/* 顶栏也变浅色 */
 header[data-testid="stHeader"] {
     background-color: #f0f8f0 !important;
 }
-/* ===== 全局背景：极淡绿色 ===== */
+[data-testid="stToolbar"] {
+    background-color: transparent !important;
+}
+
+/* ===== 主背景 ===== */
 .stApp {
     background-color: #f0f8f0 !important;
-}
-
-/* 强制所有容器背景与主背景一致 */
-.stApp > div,
-.stMainBlock,
-.stMain > div,
-.stVerticalBlock,
-.stHorizontalBlock,
-section.main > div,
-div[data-testid="stVerticalBlock"],
-div[data-testid="stHorizontalBlock"],
-div[data-testid="stBlock"],
-div[data-testid="stForm"],
-div[data-testid="stExpander"],
-div[data-testid="stColumn"] {
-    background-color: #f0f8f0 !important;
-}
-
-/* ===== 全局文字颜色 ===== */
-.stApp * {
-    color: #111122 !important;
 }
 
 /* ===== 标题 ===== */
@@ -236,6 +211,10 @@ h1 {
     background: linear-gradient(90deg, #5148ff, #923cff) !important;
     color: #ffffff !important;
 }
+.stButton button p,
+.stDownloadButton button p {
+    color: #ffffff !important;
+}
 
 /* ===== 水平布局容器 ===== */
 .stHorizontalBlock > div {
@@ -262,8 +241,11 @@ h1 {
     font-size: 14px;
     line-height: 1.8;
 }
+.blue-purple-card * {
+    color: #ffffff !important;
+}
 
-/* ===== 输入框：蓝紫渐变 ===== */
+/* ===== 输入框 ===== */
 input[type="text"],
 input[type="number"],
 input[type="password"],
@@ -288,7 +270,7 @@ input[type="number"]:focus,
     box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.3) !important;
 }
 
-/* ===== 多行文本框：蓝紫渐变 ===== */
+/* ===== 多行文本框 ===== */
 textarea,
 .stTextArea textarea,
 div[data-testid="stTextArea"] textarea {
@@ -310,7 +292,7 @@ textarea:focus,
     box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.3) !important;
 }
 
-/* ===== 下拉框：蓝紫渐变 ===== */
+/* ===== 下拉框 ===== */
 select,
 .stSelectbox select,
 div[data-testid="stSelectbox"] select {
@@ -355,24 +337,64 @@ div[data-testid="stSelectbox"] > div {
     box-shadow: none !important;
 }
 
+/* ===== 单选按钮 ===== */
+.stRadio > div {
+    background: transparent !important;
+}
+.stRadio label {
+    color: #111122 !important;
+}
+
+/* ===== 复选框 ===== */
+.stCheckbox label {
+    color: #111122 !important;
+}
+
 /* ===== 统计卡片 ===== */
 .stats-card {
-    background: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
     border-radius: 12px;
     padding: 16px 20px;
     text-align: center;
     border: 1px solid #d0e8d0;
-    backdrop-filter: blur(2px);
+}
+
+/* ===== 分割线 ===== */
+hr {
+    border-color: rgba(17, 17, 34, 0.15) !important;
+}
+
+/* ===== Tab 标签 ===== */
+.stTabs [data-baseweb="tab-list"] {
+    background: transparent !important;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #111122 !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #512bd4 !important;
+}
+
+/* ===== 提示框 ===== */
+.stAlert {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 12px !important;
+}
+.stAlert * {
+    color: #111122 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# -------------------------- 头部 --------------------------
 st.markdown("""
 <h1>📚古诗文背诵助手</h1>
 <div class="desc-text">离线优先 · 考点解析 · 背诵自测 · 一键导出</div>
 """, unsafe_allow_html=True)
+
 st.divider()
 
+# -------------------------- 统计信息 --------------------------
 col_stat1, col_stat2, col_stat3 = st.columns(3)
 with col_stat1:
     st.markdown(f"""
@@ -397,13 +419,23 @@ with col_stat3:
     """, unsafe_allow_html=True)
 
 st.divider()
+
+# -------------------------- Tab 布局 --------------------------
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🔍 查询解析", "🧠 背诵自测", "📚 快速选择", "⚙️ 数据管理", "🎮 趣味互动", "💬 反馈建议"])
 
-
+# ==================== Tab1: 查询解析 ====================
 with tab1:
     st.subheader("🔍 查询解析")
-    quick_poem = st.selectbox("快速选择篇目（或手动输入）", options=[""] + QUICK_POEMS, index=0)
-    poem_name = st.text_input("输入古诗文名称", placeholder="例如：桃花源记、陋室铭、爱莲说", value=quick_poem if quick_poem else "")
+    quick_poem = st.selectbox(
+        "快速选择篇目（或手动输入）",
+        options=[""] + QUICK_POEMS,
+        index=0
+    )
+    poem_name = st.text_input(
+        "输入古诗文名称",
+        placeholder="例如：桃花源记、陋室铭、爱莲说",
+        value=quick_poem if quick_poem else ""
+    )
     col1, col2 = st.columns(2)
     with col1:
         btn_query = st.button("🔍 查询", type="primary", use_container_width=True)
@@ -462,6 +494,7 @@ with tab1:
                     </div>
                     """, unsafe_allow_html=True)
 
+# ==================== Tab2: 背诵自测 ====================
 with tab2:
     st.subheader("🧠 背诵自测模式")
     cache_keys = list(cache_data.keys())
@@ -500,17 +533,17 @@ with tab2:
                     ''', unsafe_allow_html=True)
                     st.caption(f"🔄 共挖空 {cloze_text.count('____')} 处，点击上方按钮刷新")
                     with st.expander("📖 查看原文对照"):
-                        st.markdown(f'<div style="background:#f8f8ff;padding:16px;border-radius:12px;">{original}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div style="background:#f8f8ff;padding:16px;border-radius:12px;color:#111122;">{original}</div>', unsafe_allow_html=True)
                 else:
                     st.warning("⚠️ 未找到【原文】内容，请先查询解析")
 
-            else:  # 完全隐藏
+            else:
                 st.info("🔒 原文已隐藏，请尝试背诵全文！")
                 if "【背诵提示】" in content:
                     tips = content.split("【背诵提示】")[1].strip()
-                    tips_br = tips.replace("\n", "<br>")  # 先在外面处理，避免 f-string 报错
+                    tips_br = tips.replace("\n", "<br>")
                     st.markdown(f'''
-                    <div style="background:rgba(255,255,255,0.5);padding:16px;border-radius:12px;border:1px dashed #512bd4;">
+                    <div style="background:rgba(255,255,255,0.7);padding:16px;border-radius:12px;border:1px dashed #512bd4;color:#111122;">
                         <b>💡 背诵提示：</b><br>{tips_br}
                     </div>
                     ''', unsafe_allow_html=True)
@@ -519,6 +552,7 @@ with tab2:
     else:
         st.info("📭 还没有缓存篇目，请先到「查询解析」页面查询")
 
+# ==================== Tab3: 快速选择 ====================
 with tab3:
     st.subheader("📚 初中必背篇目快速选择")
     cols = st.columns(4)
@@ -527,6 +561,7 @@ with tab3:
             if st.button(f"📖 {poem}", key=f"quick_{poem}"):
                 st.session_state.quick_poem = poem
                 st.info(f"✅ 已选择《{poem}》，请切换到「查询解析」页面点击查询")
+
     st.markdown("---")
     st.markdown("#### ✅ 已缓存篇目")
     cached_quick = [p for p in QUICK_POEMS if p in cache_data]
@@ -535,6 +570,7 @@ with tab3:
     else:
         st.info("📭 暂无已缓存篇目")
 
+# ==================== Tab4: 数据管理 ====================
 with tab4:
     st.subheader("⚙️ 数据管理")
     col_m1, col_m2 = st.columns(2)
@@ -561,6 +597,7 @@ with tab4:
                     st.rerun()
         else:
             st.info("📭 暂无缓存")
+
     st.markdown("---")
     st.markdown("#### 💾 导出数据")
     export_format = st.selectbox("选择导出格式", options=["JSON", "Markdown", "TXT"])
@@ -610,7 +647,6 @@ with tab5:
         horizontal=True
     )
 
-    # ---------- 飞花令 ----------
     if game_choice == "🌸 飞花令 (关键字找诗句)":
         st.markdown("**输入一个关键字（如：花、月、春、风），系统将从已缓存的篇目中找出所有包含该字的诗句。**")
         keyword = st.text_input("请输入关键字", placeholder="例如：花", key="feihualing_keyword")
@@ -627,13 +663,11 @@ with tab5:
                         st.markdown(f"📖 **《{title}》**：_{sentence}_")
         st.caption("💡 提示：先到「查询解析」缓存更多篇目，飞花令会更丰富哦！")
 
-    # ---------- 猜篇名 ----------
-    else:  # 猜篇名
+    else:
         st.markdown("**系统随机选取一篇已缓存的古诗文，给出原文或译文线索，请你猜出篇名。**")
         if len(cache_data) < 2:
             st.warning("📭 缓存篇目太少（至少需要2篇），无法进行猜篇名游戏。请先去「查询解析」缓存更多篇目！")
         else:
-            # 初始化游戏状态
             if 'quiz_target' not in st.session_state:
                 st.session_state.quiz_target = None
             if 'quiz_options' not in st.session_state:
@@ -643,7 +677,6 @@ with tab5:
             if 'quiz_result' not in st.session_state:
                 st.session_state.quiz_result = None
 
-            # 生成新题目按钮
             col_btn1, col_btn2 = st.columns([1, 4])
             with col_btn1:
                 if st.button("🎲 生成新题目", key="generate_quiz"):
@@ -666,27 +699,24 @@ with tab5:
                     st.session_state.quiz_result = None
                     st.rerun()
 
-            # 显示题目
             if st.session_state.quiz_target:
                 target = st.session_state.quiz_target
                 content = cache_data.get(target, "")
                 clue = extract_translation_text(content)
                 if not clue or len(clue) < 10:
                     clue = extract_original_text(content)
-                
+
                 if clue:
                     clue_display = clue[:50] + "..." if len(clue) > 50 else clue
                     st.markdown(f"📝 **线索**：_{clue_display}_")
                     st.caption(f"（提示：共有 {len(cache_data)} 篇可猜，当前题目来自其中一篇）")
 
-                    # 显示反馈结果（如果有）
                     if st.session_state.quiz_result:
                         if st.session_state.quiz_result["correct"]:
                             st.success(f"🎉 太棒了！正确答案就是《{st.session_state.quiz_result['target']}》！")
                         else:
                             st.error(f"❌ 再想想哦，《{st.session_state.quiz_result['chosen']}》不是正确答案。")
 
-                    # 显示选项按钮
                     if not st.session_state.quiz_answered:
                         st.markdown("**请选择你的答案：**")
                         cols = st.columns(2)
@@ -711,39 +741,66 @@ with tab5:
                         st.info("⏳ 本题已作答，点击「生成新题目」继续挑战！")
                 else:
                     st.warning("⚠️ 无法获取该篇目的有效内容，请尝试重新生成题目。")
+
+# ==================== Tab6: 反馈建议 ====================
 with tab6:
     st.subheader("💬 问题反馈与建议")
-    st.caption("如果你发现内容错误、有好的建议，或者使用中遇到问题，请在这里提交，我们将持续改进！")
-    
-    feedback_poem = st.selectbox("相关篇目", options=["应用使用问题"] + QUICK_POEMS)
-    feedback_type = st.selectbox("反馈类型", options=["内容/翻译错误", "功能建议", "使用疑问", "其他"])
-    feedback_desc = st.text_area("详细描述", height=150, placeholder="请详细描述你遇到的问题或建议...")
-    
-    if st.button("📤 提交反馈", type="primary"):
-        if feedback_desc.strip():
-            feedback_data = load_feedback()
-            new_item = {
-                "id": len(feedback_data) + 1,
-                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "poem": feedback_poem,
-                "type": feedback_type,
-                "desc": feedback_desc.strip()
-            }
-            feedback_data.append(new_item)
-            save_feedback(feedback_data)
-            st.success("✅ 感谢你的反馈！已保存到本地。")
-            st.rerun()
-        else:
-            st.warning("请填写详细描述")
-    
+    st.caption("如果你发现古诗文内容有误、有好的功能建议，或者使用中遇到问题，请在这里提交。反馈会保存在本地，便于导出查看。")
+
+    feedback_poem = st.selectbox(
+        "相关篇目",
+        options=["【应用使用问题】"] + QUICK_POEMS,
+        key="feedback_poem"
+    )
+    feedback_type = st.selectbox(
+        "反馈类型",
+        options=["内容/翻译错误", "功能建议", "使用疑问", "其他"],
+        key="feedback_type"
+    )
+    feedback_desc = st.text_area(
+        "详细描述",
+        height=150,
+        placeholder="请详细描述你遇到的问题或建议，例如：某句话的翻译不准确，或希望增加某功能……",
+        key="feedback_desc"
+    )
+
+    col_fb1, col_fb2 = st.columns([1, 4])
+    with col_fb1:
+        if st.button("📤 提交反馈", type="primary", use_container_width=True):
+            if feedback_desc.strip():
+                all_fb = load_feedback()
+                new_item = {
+                    "id": len(all_fb) + 1,
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "poem": feedback_poem,
+                    "type": feedback_type,
+                    "desc": feedback_desc.strip()
+                }
+                all_fb.append(new_item)
+                save_feedback(all_fb)
+                st.success("✅ 感谢你的反馈！已保存到本地 `feedback.json` 文件中。")
+                st.rerun()
+            else:
+                st.warning("⚠️ 请填写详细描述内容！")
+
     st.divider()
-    st.subheader("📋 已提交的反馈历史")
+    st.subheader("📋 历史反馈记录")
+
     all_feedback = load_feedback()
     if all_feedback:
-        for fb in reversed(all_feedback[-10:]):  # 显示最近10条
-            with st.expander(f"{fb['time']} - {fb['poem']} ({fb['type']})"):
+        st.caption(f"共 {len(all_feedback)} 条反馈（仅显示最近 10 条）")
+        for fb in reversed(all_feedback[-10:]):
+            with st.expander(f"🕒 {fb['time']} ｜ {fb['poem']} ｜ {fb['type']}"):
                 st.write(fb['desc'])
-        if len(all_feedback) > 10:
-            st.caption(f"仅显示最近10条，共 {len(all_feedback)} 条。可在 `{FEEDBACK_FILE}` 中查看全部。")
+                st.caption(f"反馈编号：{fb['id']}")
+
+        fb_json_str = json.dumps(all_feedback, ensure_ascii=False, indent=2)
+        st.download_button(
+            label="📥 导出全部反馈为 JSON",
+            data=fb_json_str,
+            file_name="反馈记录.json",
+            mime="application/json",
+            use_container_width=True
+        )
     else:
-        st.info("暂无反馈记录。")
+        st.info("📭 目前还没有反馈记录，欢迎提出宝贵意见！")
