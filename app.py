@@ -159,12 +159,33 @@ st.set_page_config(page_title="古诗文背诵助手", page_icon="📚", layout=
 
 st.markdown("""
 <style>
+/* ===== 全局背景：极淡绿色 ===== */
 .stApp {
-    background-color: #d4f0d4;
+    background-color: #f0f8f0 !important;
 }
+
+/* 强制所有容器背景与主背景一致 */
+.stApp > div,
+.stMainBlock,
+.stMain > div,
+.stVerticalBlock,
+.stHorizontalBlock,
+section.main > div,
+div[data-testid="stVerticalBlock"],
+div[data-testid="stHorizontalBlock"],
+div[data-testid="stBlock"],
+div[data-testid="stForm"],
+div[data-testid="stExpander"],
+div[data-testid="stColumn"] {
+    background-color: #f0f8f0 !important;
+}
+
+/* ===== 全局文字颜色 ===== */
 .stApp * {
     color: #111122 !important;
 }
+
+/* ===== 标题 ===== */
 h1 {
     color: #512bd4 !important;
     text-align: center;
@@ -176,6 +197,8 @@ h1 {
     color: #444466 !important;
     margin-bottom: 30px;
 }
+
+/* ===== 按钮 ===== */
 .stButton > div,
 .stButton > div > div,
 .stDownloadButton > div,
@@ -195,15 +218,21 @@ h1 {
     background: linear-gradient(90deg, #5148ff, #923cff) !important;
     color: #ffffff !important;
 }
+
+/* ===== 水平布局容器 ===== */
 .stHorizontalBlock > div {
     background: transparent !important;
     padding: 0 !important;
 }
+
+/* ===== 自测区域 ===== */
 .stElementContainer > div[data-testid="stVerticalBlock"] > div:has(.stSelectbox),
 .stVerticalBlock > div:has(.stSelectbox) {
     background: transparent !important;
     padding: 0 !important;
 }
+
+/* ===== 蓝紫渐变卡片 ===== */
 .blue-purple-card {
     background: linear-gradient(90deg, #3b38e6, #7028dd);
     border-radius: 16px;
@@ -215,6 +244,8 @@ h1 {
     font-size: 14px;
     line-height: 1.8;
 }
+
+/* ===== 输入框：蓝紫渐变 ===== */
 input[type="text"],
 input[type="number"],
 input[type="password"],
@@ -238,7 +269,8 @@ input[type="number"]:focus,
 .stTextInput input:focus {
     box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.3) !important;
 }
-/* ===== 文本框（text_area）蓝紫渐变背景 ===== */
+
+/* ===== 多行文本框：蓝紫渐变 ===== */
 textarea,
 .stTextArea textarea,
 div[data-testid="stTextArea"] textarea {
@@ -251,16 +283,16 @@ div[data-testid="stTextArea"] textarea {
     box-shadow: none !important;
     resize: vertical !important;
 }
-
 textarea::placeholder,
 .stTextArea textarea::placeholder {
     color: rgba(255, 255, 255, 0.7) !important;
 }
-
 textarea:focus,
 .stTextArea textarea:focus {
     box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.3) !important;
 }
+
+/* ===== 下拉框：蓝紫渐变 ===== */
 select,
 .stSelectbox select,
 div[data-testid="stSelectbox"] select {
@@ -279,6 +311,8 @@ select:focus,
 div[data-testid="stSelectbox"] select:focus {
     box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.3) !important;
 }
+
+/* ===== 下拉框弹出菜单 ===== */
 div[data-baseweb="popover"] {
     background: linear-gradient(90deg, #3b38e6, #7028dd) !important;
     border: none !important;
@@ -293,6 +327,8 @@ li[role="option"]:hover {
     background: rgba(255, 255, 255, 0.2) !important;
     border-radius: 8px !important;
 }
+
+/* ===== 下拉框外层容器 ===== */
 .stSelectbox > div,
 div[data-testid="stSelectbox"] > div {
     background: transparent !important;
@@ -300,13 +336,15 @@ div[data-testid="stSelectbox"] > div {
     border: none !important;
     box-shadow: none !important;
 }
+
+/* ===== 统计卡片 ===== */
 .stats-card {
-    background: #d4f0d4 !important;
+    background: rgba(255, 255, 255, 0.3) !important;
     border-radius: 12px;
     padding: 16px 20px;
     text-align: center;
-    border: 1px solid #c0dcc0;
-    box-shadow: none;
+    border: 1px solid #d0e8d0;
+    backdrop-filter: blur(2px);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -414,6 +452,7 @@ with tab2:
         if select_poem:
             content = cache_data.get(select_poem, "暂无内容")
             test_mode = st.radio("选择自测模式", options=["📖 阅读原文", "✍️ 挖空填空", "🔒 完全隐藏"], horizontal=True, index=0)
+
             if test_mode == "📖 阅读原文":
                 html_content2 = content.replace("\n", "<br>")
                 st.markdown(f'''
@@ -421,6 +460,7 @@ with tab2:
                     <p>{html_content2}</p>
                 </div>
                 ''', unsafe_allow_html=True)
+
             elif test_mode == "✍️ 挖空填空":
                 original = extract_original_text(content)
                 if original:
@@ -445,13 +485,15 @@ with tab2:
                         st.markdown(f'<div style="background:#f8f8ff;padding:16px;border-radius:12px;">{original}</div>', unsafe_allow_html=True)
                 else:
                     st.warning("⚠️ 未找到【原文】内容，请先查询解析")
-            else:
+
+            else:  # 完全隐藏
                 st.info("🔒 原文已隐藏，请尝试背诵全文！")
                 if "【背诵提示】" in content:
                     tips = content.split("【背诵提示】")[1].strip()
+                    tips_br = tips.replace("\n", "<br>")  # 先在外面处理，避免 f-string 报错
                     st.markdown(f'''
                     <div style="background:rgba(255,255,255,0.5);padding:16px;border-radius:12px;border:1px dashed #512bd4;">
-                        <b>💡 背诵提示：</b><br>{tips.replace("\n", "<br>")}
+                        <b>💡 背诵提示：</b><br>{tips_br}
                     </div>
                     ''', unsafe_allow_html=True)
                 else:
