@@ -159,6 +159,24 @@ st.set_page_config(page_title="古诗文背诵助手", page_icon="📚", layout=
 
 st.markdown("""
 <style>
+/* ===== 强制覆盖 Streamlit 深色主题 ===== */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+    background-color: #f0f8f0 !important;
+}
+[data-testid="stAppViewContainer"] > .main {
+    background-color: #f0f8f0 !important;
+}
+section.main > div {
+    background-color: #f0f8f0 !important;
+}
+/* 强制全局文字变深色 */
+.stApp, .stApp *, [data-testid="stAppViewContainer"] * {
+    color: #111122 !important;
+}
+/* 顶栏也变浅色 */
+header[data-testid="stHeader"] {
+    background-color: #f0f8f0 !important;
+}
 /* ===== 全局背景：极淡绿色 ===== */
 .stApp {
     background-color: #f0f8f0 !important;
